@@ -1,6 +1,7 @@
-"""Monitor (Fase 1): estado do TWS live e do IB Gateway paper, alertas Telegram só em mudanças de estado.
+"""Monitor: estado do TWS live e do IB Gateway paper, alertas Telegram só em mudanças de estado.
 
-Fase 2 (recuperação automática com IBC) ainda NÃO implementada: o hook `on_down` só regista.
+v0.2.0 (Fase 2): endpoints com `recover:` no registry.yaml são levantados automaticamente via IBC
+(src/icm/recovery.py). Hoje só o IB Gateway paper.
 """
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from . import notify, probe, registry
+from . import notify, probe, recovery, registry
 
 logger = logging.getLogger(__name__)
 ROOT = Path(__file__).resolve().parents[2]
@@ -55,6 +56,12 @@ def run(once: bool = False) -> None:
         logger.info("%s: registo OK (%d bots, sem conflitos)", head, len(reg.bots))
 
     st = {k: {"up": None, "fails": 0, "since": None, "detail": ""} for k in reg.endpoints}
+    rcfg = mon.get("recovery") or {}
+    recs = {k: recovery.Recoverer(f"{ep.kind} {ep.account} ({ep.port})", ep.recover,
+                                  int(rcfg.get("max_per_hour", 3)))
+            for k, ep in reg.endpoints.items() if ep.recover and rcfg.get("enabled", False)}
+    if recs:
+        logger.info("Recuperação automática activa para: %s", ", ".join(recs))
     n = 0
     while True:
         n += 1
@@ -69,7 +76,10 @@ def run(once: bool = False) -> None:
             lab = f"{ep.kind} {ep.account} ({ep.port})"
             if ok and s["up"] is not True:
                 if s["up"] is False:
-                    notify.send(f"✅ {lab} voltou a responder. {r.detail}".strip())
+                    _rec = recs.get(name)
+                    _auto = " (recuperado automaticamente via IBC)" if _rec and _rec.last and \
+                        time.time() - _rec.last < 1800 else ""
+                    notify.send(f"✅ {lab} voltou a responder{_auto}. {r.detail}".strip())
                 logger.info("%s UP %s", lab, r.detail)
                 s["up"], s["since"] = True, now.isoformat(timespec="seconds")
             elif not ok and s["fails"] >= need and s["up"] is not False:
@@ -80,10 +90,21 @@ def run(once: bool = False) -> None:
                     notify.send(f"🔴 {lab} EM BAIXO: {r.detail}\n"
                                 f"Bots afectados: " + ", ".join(
                                     b.name for b in reg.bots if b.endpoint in (name, "any")) +
-                                "\n(Fase 1: reinicia à mão. Recuperação automática = Fase 2, com IBC.)")
+                                ("\nRecuperação automática via IBC activa." if name in recs else
+                                 "\nSem recuperação automática para este endpoint — reinicia à mão."))
                 else:
                     logger.info("%s em baixo (não crítico): %s", lab, r.detail)
-                on_down(name, ep)
+            # v0.2.0: enquanto estiver em baixo, tenta recuperar (fora da manutenção e sem pausa)
+            if not ok and s["up"] is False and name in recs and not once:
+                if in_quiet_window(now, quiet):
+                    pass
+                elif recovery.paused():
+                    logger.info("%s em baixo — recuperação em pausa (data/PAUSE_RECOVERY)", lab)
+                else:
+                    _since = datetime.fromisoformat(s["since"])
+                    _act = recs[name].step((now - _since).total_seconds(), notify.send)
+                    if _act:
+                        logger.info("recuperação %s: %s", lab, _act)
         _save({"ts": now.isoformat(timespec="seconds"), "endpoints": st})
         if once:
             for name, s in st.items():
@@ -91,7 +112,3 @@ def run(once: bool = False) -> None:
             return
         time.sleep(interval)
 
-
-def on_down(name: str, ep) -> None:
-    """Fase 2: arrancar o TWS/IBG via IBC. Ainda não implementado (só regista)."""
-    logger.info("on_down %s: recuperação automática ainda não activa (Fase 2)", name)

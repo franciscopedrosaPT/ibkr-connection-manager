@@ -18,6 +18,7 @@ class Endpoint:
     kind: str
     account: str
     critical: bool = True
+    recover: dict | None = None   # v0.2.0: {cmd, process_match, stuck_min, wait_min}
 
 
 @dataclass

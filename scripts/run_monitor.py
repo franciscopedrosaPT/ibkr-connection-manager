@@ -41,7 +41,29 @@ def main() -> None:
         for b in reg.bots:
             print(f"  {b.endpoint:10s} {str(b.client_ids):18s} {b.name}")
         return
+    if not a.once and not _single_instance():
+        logging.getLogger(__name__).info("Já existe um monitor a correr — esta instância termina.")
+        return
     monitor.run(once=a.once)
+
+
+def _single_instance() -> bool:
+    """v0.2.1: um único monitor (evita alertas e arranques IBC em duplicado). Lock = PID em data/monitor.lock."""
+    import os
+    lock = ROOT / "data" / "monitor.lock"
+    lock.parent.mkdir(exist_ok=True)
+    try:
+        import psutil
+        if lock.exists():
+            pid = int(lock.read_text().strip() or 0)
+            if pid and pid != os.getpid() and psutil.pid_exists(pid):
+                cmd = " ".join(psutil.Process(pid).cmdline())
+                if "run_monitor" in cmd:
+                    return False
+    except Exception:
+        pass
+    lock.write_text(str(os.getpid()))
+    return True
 
 
 if __name__ == "__main__":

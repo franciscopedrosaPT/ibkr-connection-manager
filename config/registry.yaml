@@ -15,6 +15,11 @@ endpoints:
     kind: IBG
     account: paper
     critical: true
+    recover:                # v0.2.0: levantar automaticamente via IBC (credenciais só no config do IBC)
+      cmd: 'C:\IBC\StartGateway.bat'
+      process_match: ibgateway   # identifica o processo do IB Gateway (nunca o TWS live)
+      stuck_min: 10         # processo aberto mas porta fechada há ≥10 min → terminar e arrancar de novo
+      wait_min: 5           # tempo dado a cada arranque antes de nova tentativa
   tws_paper:                # reserva do forex (fallback) — normalmente desligado
     host: 127.0.0.1
     port: 7497
@@ -30,6 +35,9 @@ monitor:
   # janelas em que uma queda é esperada (reinício diário do TWS/IBG, manutenção IBKR). Hora UTC.
   quiet_windows_utc:
     - "04:45-05:45"         # reset diário dos servidores IBKR (≈ 23:45–00:45 ET)
+  recovery:                 # v0.2.0
+    enabled: true           # pausar sem editar: criar o ficheiro data/PAUSE_RECOVERY
+    max_per_hour: 3
 
 bots:
   - name: Forex — dados
