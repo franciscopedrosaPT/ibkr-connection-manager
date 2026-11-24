@@ -1,0 +1,75 @@
+# Registo único das ligações à IBKR (ibkr-connection-manager v0.1.0, 2026-11-24)
+# Fonte de verdade: cada bot DEVE usar client IDs só dentro da sua faixa. O monitor confirma que a
+# configuração real de cada bot (o ficheiro indicado em `config_check`) bate com este registo.
+
+endpoints:
+  tws_live:
+    host: 127.0.0.1
+    port: 7496
+    kind: TWS
+    account: live
+    critical: true          # há ordens reais a depender disto
+  ibg_paper:
+    host: 127.0.0.1
+    port: 4002
+    kind: IBG
+    account: paper
+    critical: true
+  tws_paper:                # reserva do forex (fallback) — normalmente desligado
+    host: 127.0.0.1
+    port: 7497
+    kind: TWS
+    account: paper
+    critical: false
+
+monitor:
+  client_id: 90             # CID reservado ao monitor (só leitura)
+  interval_s: 60            # verificação TCP
+  api_every_n: 5            # verificação pela API (reqCurrentTime) de 5 em 5 ciclos
+  down_after_failures: 2    # só alerta depois de N falhas seguidas (evita falsos alarmes)
+  # janelas em que uma queda é esperada (reinício diário do TWS/IBG, manutenção IBKR). Hora UTC.
+  quiet_windows_utc:
+    - "04:45-05:45"         # reset diário dos servidores IBKR (≈ 23:45–00:45 ET)
+
+bots:
+  - name: Forex — dados
+    project: forex-eurusd-analyzer
+    endpoint: ibg_paper
+    client_ids: [10]
+    config_check: {file: "../forex-eurusd-analyzer/.env", key: IBKR_CLIENT_ID}
+  - name: Forex — execução paper
+    project: forex-eurusd-analyzer
+    endpoint: ibg_paper
+    client_ids: [43, 44, 45, 46]
+    config_check: {file: "../forex-eurusd-analyzer/.env", key: EXECUTION_CLIENT_ID}
+  - name: Forex — execução live
+    project: forex-eurusd-analyzer
+    endpoint: tws_live
+    client_ids: [47, 48, 49, 50]
+    config_check: {file: "../forex-eurusd-analyzer/.env", key: LIVE_EXECUTION_CLIENT_ID}
+  - name: Forex — adopção de ordens manuais (master)
+    project: forex-eurusd-analyzer
+    endpoint: tws_live
+    client_ids: [0]
+  - name: Agentes TF / VB
+    project: forex-eurusd-analyzer
+    endpoint: ibg_paper
+    client_ids: [51]
+  - name: Forex — scripts (sombras, auditorias)
+    project: forex-eurusd-analyzer
+    endpoint: any
+    client_ids: [61, 62, 63, 64]
+  - name: Earnings & Dividends
+    project: Analyze Earnings and Dividends
+    endpoint: tws_live
+    client_ids: [42]
+    config_check: {file: "../Analyze Earnings and Dividends/.env", key: IBKR_CLIENT_ID}
+  - name: Covered Calls (+ notícias)
+    project: Analyze covered calls
+    endpoint: tws_live
+    client_ids: [70, 71]
+    config_check: {file: "../Analyze covered calls/config/config.yaml", key: client_id}
+  - name: ibkr-connection-manager (monitor)
+    project: ibkr-connection-manager
+    endpoint: any
+    client_ids: [90]
