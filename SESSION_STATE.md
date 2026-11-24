@@ -27,6 +27,8 @@ dos 3 projectos a bater certo; `--once` sem TWS → DOWN). Falta: instalar no PC
 
 **v0.3.0:** Recuperação automática do TWS LIVE via IBC: TWS offline 1050 (C:\Jts\1050), StartTWS.bat com config-live.ini (credenciais só lá, icacls só do utilizador), AutoRestartTime=05:15 AM (dentro da janela de manutenção). registry: tws_live.recover {StartTWS.bat, process_match ibctws (nunca o tws.exe antigo), stuck_min 20, wait_min 6, twofa}. Ao arrancar envia '🔐 APROVA o login no IBKR Mobile (2FA)'. Teste manual 24/11 ~14:50: login IBC + 2FA OK, 7496 UP às 14:52.
 
+**Teste TWS live 24/11 15:18:** TWS fechado à mão → 15:18:37 arranque IBC (2FA aprovado no IBKR Mobile) → 15:19:42 UP. Recuperação automática do live CONFIRMADA. Após reboot: só arranca depois do login no Windows (tarefa Interactive). Crashes Java do TWS: 'insufficient memory' (RAM+pagefile esgotados; PC 15 GB, Ollama/bots/Chrome); sugerido aumentar pagefile, rever Ollama, ParallelGCThreads 20→4.
+
 **Próximo:** Fase 2 — instalar IBC (ver docs/FASE2_IBC.md), testar primeiro no IB Gateway paper (sem 2FA), depois TWS live.
 
 **Regras:** só leitura; nunca escrever credenciais em código, logs ou Git; actualizar ARQUITETURA, SPECS,
