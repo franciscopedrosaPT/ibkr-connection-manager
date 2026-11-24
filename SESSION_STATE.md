@@ -15,6 +15,8 @@ dos 3 projectos a bater certo; `--once` sem TWS → DOWN). Falta: instalar no PC
 
 **v0.1.2:** a tarefa 0.1.1 nunca correu (LastTaskResult 267011) → principal S4U + gatilho de 5 em 5 min com IgnoreNew.
 
+**GitHub:** https://github.com/franciscopedrosaPT/ibkr-connection-manager (público), commit inicial 2ab4664 (v0.1.2). Monitor a correr pela tarefa 'IBKR Connection Manager' desde 24/11 11:41.
+
 **Próximo:** Fase 2 — instalar IBC (ver docs/FASE2_IBC.md), testar primeiro no IB Gateway paper (sem 2FA), depois TWS live.
 
 **Regras:** só leitura; nunca escrever credenciais em código, logs ou Git; actualizar ARQUITETURA, SPECS,
