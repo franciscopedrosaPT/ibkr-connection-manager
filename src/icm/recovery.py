@@ -69,6 +69,7 @@ class Recoverer:
         self.name = name
         self.cmd = cfg["cmd"]
         self.match = cfg.get("process_match", "ibgateway")
+        self.twofa = bool(cfg.get("twofa", False))   # v0.3.0: conta real → login pede 2FA no IBKR Mobile
         self.stuck_s = 60 * int(cfg.get("stuck_min", 10))
         self.wait_s = 60 * int(cfg.get("wait_min", 5))
         self.max_per_hour = max_per_hour
@@ -102,5 +103,6 @@ class Recoverer:
         self.last = now
         launch(self.cmd)
         notify(f"🔧 {self.name} em baixo — a arrancar via IBC (tentativa {len(self.attempts)}/{self.max_per_hour} "
-               f"nesta hora). Aviso quando voltar a responder.")
+               f"nesta hora). Aviso quando voltar a responder."
+               + ("\n🔐 APROVA o login no IBKR Mobile (2FA) nos próximos minutos." if self.twofa else ""))
         return "arranque IBC"

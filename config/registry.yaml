@@ -9,6 +9,12 @@ endpoints:
     kind: TWS
     account: live
     critical: true          # há ordens reais a depender disto
+    recover:                # v0.3.0: TWS OFFLINE 1050 via IBC (config-live.ini, credenciais só lá)
+      cmd: 'C:\IBC\StartTWS.bat'
+      process_match: ibctws # só o TWS arrancado pelo IBC (classe ibcalpha.ibc.IbcTws); nunca o tws.exe antigo
+      stuck_min: 20         # mais folga: um login à espera do 2FA também tem a porta fechada
+      wait_min: 6
+      twofa: true           # avisa no Telegram para aprovar o login no IBKR Mobile
   ibg_paper:
     host: 127.0.0.1
     port: 4002
