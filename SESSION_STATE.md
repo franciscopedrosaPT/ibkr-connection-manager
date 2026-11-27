@@ -1,7 +1,7 @@
 # SESSION_STATE — IBKR Connection Manager
 
 Última actualização: 2026-11-24
-Versão: 0.3.0 (recuperação TWS live + IBG paper) (Fase 2 — recuperação IBG paper) (Fase 1 — registo + monitor)
+Versão: 0.3.1 (registo VB 52; recuperação TWS live + IBG paper) (Fase 2 — recuperação IBG paper) (Fase 1 — registo + monitor)
 
 **Origem (24/11/2026):** decisão do Francisco — um serviço para os bots que falam com a IBKR (Forex + TF/VB,
 Covered Calls, Earnings & Dividends): gerir client IDs e, quando o TWS/IBG cair, voltar a levantá-lo. Sem risco
@@ -24,6 +24,8 @@ dos 3 projectos a bater certo; `--once` sem TWS → DOWN). Falta: instalar no PC
 **v0.2.0 (24/11):** Fase 2: recuperação automática do IB Gateway paper via IBC. recovery.Recoverer: enquanto o endpoint está em baixo (fora das janelas de manutenção e sem data/PAUSE_RECOVERY) arranca C:\IBC\StartGateway.bat; se o processo do IBG (cmdline com 'ibgateway', nunca o tws.exe) existe mas a porta está fechada há ≥10 min, termina-o e arranca de novo; 5 min entre tentativas; máx. 3/hora, depois avisa 'intervenção manual'. Telegram: 'a arrancar via IBC', 'recuperado automaticamente via IBC'. Tarefa agendada passa a Interactive (o IBG tem de abrir no ambiente de trabalho do utilizador) com pythonw. IBC: AcceptNonBrokerageAccountWarning=yes no config-paper.ini (o aviso do paper bloqueava a abertura da porta 4002); ficheiros do ZIP desbloqueados (Unblock-File). Dependência nova: psutil. Teste manual: arranque pelo IBC abriu a 4002 sozinho.
 
 **Teste 24/11 14:23:** IBG paper fechado → 14:23 '🔧 a arrancar via IBC' → 14:24:46 UP ('recuperado automaticamente via IBC') — recuperação automática do paper CONFIRMADA. v0.2.1: Instância única do monitor (data/monitor.lock com PID); no teste de 24/11 ficaram monitores antigos (v0.1.x) a correr em paralelo → alertas em duplicado.
+
+**v0.3.1 (27/11):** Registo: agentes TF/VB com CIDs por modo — paper TF **51** / VB **52** (IB Gateway 4002), live TF **53** / VB **54** (TWS 7496, só instrumentos listados em TF_/VB_LIVE_SYMBOLS) — desde 27/11 os agentes enviam ordens STOP à IBKR (forex-eurusd-analyzer TF 0.6.0 / VB 0.4.0). Sem alterações de código.
 
 **v0.3.0:** Recuperação automática do TWS LIVE via IBC: TWS offline 1050 (C:\Jts\1050), StartTWS.bat com config-live.ini (credenciais só lá, icacls só do utilizador), AutoRestartTime=05:15 AM (dentro da janela de manutenção). registry: tws_live.recover {StartTWS.bat, process_match ibctws (nunca o tws.exe antigo), stuck_min 20, wait_min 6, twofa}. Ao arrancar envia '🔐 APROVA o login no IBKR Mobile (2FA)'. Teste manual 24/11 ~14:50: login IBC + 2FA OK, 7496 UP às 14:52.
 

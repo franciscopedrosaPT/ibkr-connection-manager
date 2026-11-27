@@ -65,10 +65,22 @@ bots:
     project: forex-eurusd-analyzer
     endpoint: tws_live
     client_ids: [0]
-  - name: Agentes TF / VB
+  - name: Agente TF (ordens na conta paper desde 2026-11-27)
     project: forex-eurusd-analyzer
     endpoint: ibg_paper
     client_ids: [51]
+  - name: Agente VB (ordens na conta paper desde 2026-11-27)
+    project: forex-eurusd-analyzer
+    endpoint: ibg_paper
+    client_ids: [52]
+  - name: Agente TF — live (só instrumentos em TF_LIVE_SYMBOLS; vazio por defeito)
+    project: forex-eurusd-analyzer
+    endpoint: tws_live
+    client_ids: [53]
+  - name: Agente VB — live (só instrumentos em VB_LIVE_SYMBOLS; vazio por defeito)
+    project: forex-eurusd-analyzer
+    endpoint: tws_live
+    client_ids: [54]
   - name: Forex — scripts (sombras, auditorias)
     project: forex-eurusd-analyzer
     endpoint: any
